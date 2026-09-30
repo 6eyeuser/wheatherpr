@@ -11,6 +11,12 @@ export default function AdminDashboard() {
   const [success, setSuccess] = useState(false);
   const [broadcasting, setBroadcasting] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
+
+  // Modifiable alert state
+  const [alertTitle, setAlertTitle] = useState('High-Intensity Convective Storm Tracked over Gangetic Corridor');
+  const [alertDesc, setAlertDesc] = useState('PyTorch tensor analysis confirms extreme CAPE anomalies (>1400 J/kg) coupled with sudden MSLP drops. High risk of localized flash floods and destructive wind shear.');
+  const [alertConf, setAlertConf] = useState('94.8%');
+
   const [logs, setLogs] = useState<string[]>([
     'System initialized. FastAPI inference server connected.',
     'Loaded ResNet50 4-channel tensor weights [heavy_weather_model_resnet50.pt].',
@@ -36,14 +42,25 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleBroadcastAlert = () => {
+  const handleBroadcastAlert = (e: React.FormEvent) => {
+    e.preventDefault();
     setBroadcasting(true);
-    setLogs(prev => [...prev, 'Broadcasting emergency notification banner to Supabase & User Portals...']);
+    setLogs(prev => [...prev, `Broadcasting custom alert: "${alertTitle}"...`]);
+
+    // Save to localStorage so user dashboard reads it instantly
+    const alertPayload = {
+      title: alertTitle,
+      description: alertDesc,
+      confidence: alertConf,
+      active: true
+    };
+    localStorage.setItem('vayu_active_alert', JSON.stringify(alertPayload));
+
     setTimeout(() => {
       setBroadcasting(false);
       setBroadcastSuccess(true);
-      setLogs(prev => [...prev, 'SUCCESS: Severe Convective Alert active on live public user dashboard!']);
-    }, 1500);
+      setLogs(prev => [...prev, 'SUCCESS: Custom alert live on User Dashboard!']);
+    }, 1200);
   };
 
   return (
@@ -105,49 +122,80 @@ export default function AdminDashboard() {
               {success && (
                 <div className="flex items-center space-x-3 text-emerald-400 text-sm bg-emerald-950/40 border border-emerald-900 p-3.5 rounded-xl">
                   <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                  <span>Inference complete! Ready for notification broadcast.</span>
+                  <span>Inference complete! Ready for custom broadcast.</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Broadcast Alert & Model Control */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-lg flex flex-col justify-between">
-            <div className="space-y-4">
+          {/* Modifiable Broadcast Alert Control */}
+          <form onSubmit={handleBroadcastAlert} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-lg flex flex-col justify-between">
+            <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="bg-red-500/10 p-3 rounded-2xl border border-red-500/20 text-red-400">
                   <Send className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Broadcast Alert to Users</h2>
-                  <p className="text-xs text-slate-400">Push emergency warnings to public dashboard</p>
+                  <h2 className="text-lg font-bold text-white">Broadcast Custom Alert</h2>
+                  <p className="text-xs text-slate-400">Modify and push emergency warnings live</p>
                 </div>
               </div>
 
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                <div className="text-xs text-slate-400 font-mono">Target Payload:</div>
-                <div className="text-xs font-bold text-red-400">Severe Convective Storm (&gt;1400 J/kg CAPE)</div>
-                <p className="text-[11px] text-slate-500">Triggering this will instantly display the high-priority warning banner across all connected user portals.</p>
+              <div className="space-y-2.5">
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium">Alert Heading / Title</label>
+                  <input 
+                    type="text" 
+                    value={alertTitle} 
+                    onChange={(e) => setAlertTitle(e.target.value)} 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500" 
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] text-slate-400 font-medium">Detailed Warning Description</label>
+                  <textarea 
+                    value={alertDesc} 
+                    onChange={(e) => setAlertDesc(e.target.value)} 
+                    rows={2} 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 resize-none" 
+                    required
+                  />
+                </div>
+
+                <div className="flex space-x-2">
+                  <div className="w-1/2">
+                    <label className="text-[11px] text-slate-400 font-medium">Confidence Index</label>
+                    <input 
+                      type="text" 
+                      value={alertConf} 
+                      onChange={(e) => setAlertConf(e.target.value)} 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 font-mono" 
+                      required
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 pt-2">
               <button 
-                onClick={handleBroadcastAlert}
+                type="submit"
                 disabled={broadcasting}
-                className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-lg shadow-red-600/20 flex items-center justify-center space-x-2"
+                className="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-2xl transition text-sm shadow-lg shadow-red-600/20 flex items-center justify-center space-x-2"
               >
                 {broadcasting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                <span>{broadcasting ? 'Broadcasting...' : 'Push Alert to User Dashboard'}</span>
+                <span>{broadcasting ? 'Broadcasting...' : 'Push Custom Alert Live'}</span>
               </button>
 
               {broadcastSuccess && (
-                <div className="text-xs text-emerald-400 text-center font-medium bg-emerald-950/40 border border-emerald-900 py-2 rounded-xl">
-                  ✓ Notification successfully live on User Dashboard!
+                <div className="text-xs text-emerald-400 text-center font-medium bg-emerald-950/40 border border-emerald-900 py-1.5 rounded-xl">
+                  ✓ Live on User Dashboard!
                 </div>
               )}
             </div>
-          </div>
+          </form>
 
         </div>
 

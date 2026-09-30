@@ -1,13 +1,31 @@
 'tsx'
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Activity, Compass, Bell, ArrowUpRight, LogOut, Radio } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function UserDashboard() {
   const router = useRouter();
   const [selectedRegion] = useState('Gangetic Plains (Northern India)');
+  const [alertData, setAlertData] = useState({
+    title: 'High-Intensity Convective Storm Tracked over Gangetic Corridor',
+    description: 'PyTorch tensor analysis confirms extreme CAPE anomalies (>1400 J/kg) coupled with sudden MSLP drops. High risk of localized flash floods and destructive wind shear.',
+    confidence: '94.8%',
+    active: true
+  });
+
+  useEffect(() => {
+    // Check for custom admin broadcast in localStorage
+    const savedAlert = localStorage.getItem('vayu_active_alert');
+    if (savedAlert) {
+      try {
+        setAlertData(JSON.parse(savedAlert));
+      } catch (e) {
+        console.error('Error parsing saved alert');
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950">
@@ -43,36 +61,36 @@ export default function UserDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto p-6 space-y-6">
         
-        {/* Threat Banner */}
-        <div className="bg-gradient-to-r from-red-950/80 via-rose-950/40 to-slate-900 border border-red-900/60 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
-          <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-            <div className="flex items-start space-x-4">
-              <div className="bg-red-600 text-white p-3.5 rounded-2xl shadow-lg shadow-red-600/30 flex-shrink-0">
-                <ShieldAlert className="w-8 h-8 animate-bounce" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="bg-red-500 text-slate-950 text-xs font-bold px-2.5 py-0.5 rounded uppercase">Severe Convective Alert</span>
-                  <span className="text-xs text-red-400 font-mono">ID: WX-2026-SIH26078</span>
+        {/* Dynamic Threat Banner */}
+        {alertData.active && (
+          <div className="bg-gradient-to-r from-red-950/80 via-rose-950/40 to-slate-900 border border-red-900/60 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+            <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+              <div className="flex items-start space-x-4">
+                <div className="bg-red-600 text-white p-3.5 rounded-2xl shadow-lg shadow-red-600/30 flex-shrink-0">
+                  <ShieldAlert className="w-8 h-8 animate-bounce" />
                 </div>
-                <h2 className="text-xl md:text-2xl font-black text-white mt-1">High-Intensity Convective Storm Tracked over {selectedRegion}</h2>
-                <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-                  PyTorch tensor analysis confirms extreme CAPE anomalies (&gt;1400 J/kg) coupled with sudden MSLP drops. High risk of localized flash floods and destructive wind shear.
-                </p>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-red-500 text-slate-950 text-xs font-bold px-2.5 py-0.5 rounded uppercase">Severe Convective Alert</span>
+                    <span className="text-xs text-red-400 font-mono">ID: WX-2026-SIH26078</span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-white mt-1">{alertData.title}</h2>
+                  <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+                    {alertData.description}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="bg-slate-950/80 border border-slate-800 px-5 py-4 rounded-2xl text-right min-w-[200px] backdrop-blur-md">
-              <span className="text-xs text-slate-400 block">Threat Confidence</span>
-              <span className="text-3xl font-black text-red-400 font-mono">94.8%</span>
+              <div className="bg-slate-950/80 border border-slate-800 px-5 py-4 rounded-2xl text-right min-w-[200px] backdrop-blur-md">
+                <span className="text-xs text-slate-400 block">Threat Confidence</span>
+                <span className="text-3xl font-black text-red-400 font-mono">{alertData.confidence}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Grid Stats & Map View */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Left 2 Cols: Map Visualizer */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-lg space-y-4">
               <div className="flex justify-between items-center">
@@ -83,11 +101,9 @@ export default function UserDashboard() {
               </div>
               
               <div className="bg-slate-950 rounded-2xl border border-slate-800 h-[400px] relative overflow-hidden flex items-center justify-center">
-                {/* Simulated Radar Background */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950 to-slate-950"></div>
                 <div className="absolute inset-0 opacity-30 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:2.5rem_2.5rem]"></div>
                 
-                {/* Vortex Core Animation */}
                 <div className="relative z-10 w-56 h-56 rounded-full border border-red-500/30 flex items-center justify-center animate-spin" style={{ animationDuration: '25s' }}>
                   <div className="w-36 h-36 rounded-full border border-amber-500/40 flex items-center justify-center">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-red-600 via-amber-500 to-cyan-400 blur-md opacity-80 animate-pulse"></div>
@@ -102,7 +118,6 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          {/* Right Col: 4-Channel Metrics */}
           <div className="space-y-6">
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-lg space-y-5">
               <h3 className="text-base font-bold text-white flex items-center">
@@ -158,7 +173,6 @@ export default function UserDashboard() {
               </div>
             </div>
           </div>
-
         </div>
       </main>
     </div>
