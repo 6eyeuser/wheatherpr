@@ -40,7 +40,8 @@ export default function AdminDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/trigger-broadcast', {
+      // Updated to point to your live Render backend
+      const response = await fetch('https://ai-weather-backend-qu4u.onrender.com/trigger-broadcast', {
         method: 'POST',
         body: formDataToSend,
       })
@@ -49,10 +50,13 @@ export default function AdminDashboard() {
       if (response.ok) {
         setStatus(`Alert dispatched. Notified users in ${formData.radiusKm} km radius: ${data.users_in_radius?.length ?? 0}`)
       } else {
-        setStatus(`Broadcast failed: ${data.detail || 'Server error'}`)
+        const errorMsg = typeof data.detail === 'object' 
+          ? JSON.stringify(data.detail) 
+          : (data.detail || data.error || 'Server error')
+        setStatus(`Broadcast failed: ${errorMsg}`)
       }
     } catch {
-      setStatus('Error connecting to Python backend (port 8000). Ensure the backend is running.')
+      setStatus('Error connecting to the live Python backend. Ensure the Render service is running.')
     } finally {
       setLoading(false)
     }
